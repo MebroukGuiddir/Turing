@@ -475,16 +475,21 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "turing.lex"
-#line 3 "turing.lex"
+#define YY_NO_INPUT 1
+#line 5 "turing.lex"
 #include <stdio.h>
 #include<unistd.h>
 #include <stdlib.h>
 #include <linux/types.h>
 #include "fonctions.h"
 Program *p;
+Dlist *bande;
+Instruction inst;
+int programFlag=0,stepFlag=0,instructionFlag=0,exist;
 int yyerror(char *s);
-#line 487 "turing.c"
-#line 488 "turing.c"
+#line 491 "turing.c"
+/* lexical analysis */
+#line 493 "turing.c"
 
 #define INITIAL 0
 
@@ -544,8 +549,6 @@ extern int yywrap ( void );
 #endif
 
 #ifndef YY_NO_UNPUT
-    
-    static void yyunput ( int c, char *buf_ptr  );
     
 #endif
 
@@ -701,9 +704,9 @@ YY_DECL
 		}
 
 	{
-#line 23 "turing.lex"
+#line 28 "turing.lex"
 
-#line 707 "turing.c"
+#line 710 "turing.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -772,22 +775,32 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "turing.lex"
+#line 29 "turing.lex"
 {
-program_tranche(yytext,p);
+inst=tranche(yytext);
+printf("->Inst :  %s\n",yytext);
+exist=program_instruction_exist(p,inst);
+if(exist==2){
+   yyerror("Le programme ne peut contenir plus d'une règle avec le même couple condition (p,s) !");
+}
+if(exist==1) {
+  printf("\033[1;33m\033[1m yywarning : \033[0m line %d - La règle %s existe déja!\n",yylineno,yytext);
+}
+
+program_add(inst, p);
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 27 "turing.lex"
-printf("\n something else :%s", yytext);
+#line 42 "turing.lex"
+{;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 28 "turing.lex"
+#line 43 "turing.lex"
 ECHO;
 	YY_BREAK
-#line 791 "turing.c"
+#line 804 "turing.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1122,47 +1135,6 @@ static int yy_get_next_buffer (void)
 }
 
 #ifndef YY_NO_UNPUT
-
-    static void yyunput (int c, char * yy_bp )
-{
-	char *yy_cp;
-    
-    yy_cp = (yy_c_buf_p);
-
-	/* undo effects of setting up yytext */
-	*yy_cp = (yy_hold_char);
-
-	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-		{ /* need to shift things up to make room */
-		/* +2 for EOB chars. */
-		int number_to_move = (yy_n_chars) + 2;
-		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
-					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		char *source =
-				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
-
-		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
-			*--dest = *--source;
-
-		yy_cp += (int) (dest - source);
-		yy_bp += (int) (dest - source);
-		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			(yy_n_chars) = (int) YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
-
-		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-			YY_FATAL_ERROR( "flex scanner push-back overflow" );
-		}
-
-	*--yy_cp = (char) c;
-
-    if ( c == '\n' ){
-        --yylineno;
-    }
-
-	(yytext_ptr) = yy_bp;
-	(yy_hold_char) = *yy_cp;
-	(yy_c_buf_p) = yy_cp;
-}
 
 #endif
 
@@ -1804,31 +1776,70 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 28 "turing.lex"
+#line 43 "turing.lex"
 
 int yyerror(char *s) {
-    printf("yyerror : %s\n",s);
-    return 0;
+    printf("\033[1;31m\033[1m yyerror : \033[0m line %d - %s\n",yylineno,s);
+    exit (EXIT_FAILURE);
 }
+
 int main(int argc ,char** argv) {
+ int c;
     if (argc<2) {
-      perror("usage :turing programme.tur [STR*]");
-     exit (EXIT_SUCCESS);
+   fprintf (stderr, "Usage: %s file.tur [Tape Init]* [-p -s -i]\n-p : view program\n-s : execute the program step by step\n-i : see the instruction executed\n", argv[0]);
+    exit (EXIT_FAILURE);
     }
+    //**********Initialisation programme*************//
     p=program_init();
     yyin = fopen(argv[1], "r" );
+
+    //parse
+    printf("\nProgram parsing :\n");
     yylex() ;
-    program_print(p);
-    Dlist *bonde;
-    printf("\nInitialisation de la bonde:\n");
-    bonde=dlist_new();
-    if (argc>2) dlist_init(bonde,&argv[2],argc-2);
-    dlist_print(bonde);
-    turing(bonde,p);
+
+
+
+
+
+
+    //********Initialisation de la bande**********//
+
+    bande=dlist_new();
+    if (argc>2) dlist_init(bande,&argv[2],argc-2);
+   //set flags
+    while ((c = getopt (argc, argv, "psi")) != -1)
+   switch (c)
+    {
+    case 'p'://view program
+      programFlag = 1;
+      break;
+    case 's'://execute the program step by step
+      stepFlag = 1;
+      break;
+    case 'i'://see the instruction executed
+      instructionFlag = 1;
+      break;
+    default:               /* '?' */
+               fprintf (stderr, "Usage: %s file.tur [Tape Init]* [-p -s -i]\n-p : view program\n-s : execute the program step by step\n-i : see the instruction executed\n", argv[0]);
+
+               exit (EXIT_FAILURE);
+    }
+
+
+    //afficher les instructions
+    if(programFlag)  program_print(p);
+
+    // afficher la bonde
+    printf("\nInitialisation de la bande:\n");
+    dlist_print(bande);
+
+    //*************** execution ****************//
+    turing(bande,p);
 
 
 
 
    }
+
 int yywrap(){return(1);}
 

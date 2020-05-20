@@ -1,0 +1,13 @@
+# CALCULE LA FONCTION (a,b) -> a + b de N x N dans N
+
+# BLOC 1: ECRIRE LE BÂTON ENTRE LES DEUX SÉQUENCES
+D,!:>,D # on saute les k premiers bâtons vers la droite
+D, :!,1 # on remplace le blanc central par un bâton, puis BLOC 2
+
+# BLOC 2: ON REVIENT à GAUCHE POUR EFFACER LES DEUX BÂTONS EN EXCÉDENT.
+1,!:<,1 # on ramène la tête de L/E sur le blanc à gauche
+1, :>,2 # on avance sur le premier bâton
+2,!: ,2 # on efface le premier bâton
+2, :>,3 # on avance
+3,!: ,4 # on efface le second bâton
+4, :>,F # on avance d'une cellule.

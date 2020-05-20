@@ -1,0 +1,35 @@
+# CALCULE LA FONCTION n -> (n,n) de N dans N x N
+
+# BLOC 1: ECRIRE PREMIER BATON DE v ET REVENIR SUR PREMIER BATON DE u
+D,!:<,I0   # On va à gauche de u sur le blanc separateur
+I0, :<,I1  # On saute le blanc séparateur entre u et v à gauche
+I1, :!,I2  # On écrit le premier baton de v
+I2,!:>,I3  # On revient sur le separateur
+I3, :>,U   # On se place sur le premier bâton de u. Puis BLOC 2
+
+# BLOC 2: RESTE-T-IL UN AUTRE BATON A DROITE DU PREMIER SYMBOLE DE u ?
+U,!:>,T    # On va à droite du premier baton de u.
+T,!:<,E0   # OUI => on va a gauche puis copier cf. BLOC 3
+T, :<,F0   # NON => on va a gauche et on finit cf. BLOC 5
+
+# BLOC 3: EFFACER LE "PREMIER" BATON DE u ET L'ECRIRE A GAUCHE DE v
+E0,!: ,E1  # on efface le premier baton de u
+E1, :<,E1  # on saute tous les blancs entre u et v vers la gauche
+E1,!:<,G   # on saute le dernier baton de v vers la gauche
+G,!:<,G    # puis tous les autres batons de v vers la gauche
+G, :!,R    # on écrit un baton de plus a gauche de v
+
+# BLOC 4: REVENIR SUR LE "PREMIER" BATON DE u
+R,!:>,R    # on saute tous les batons de v vers la droite
+R, :>,S    # on saute le blanc separateur entre v et u
+S, :>,S    # on saute tous les blancs de u
+S,!:!,U    # on recommence au bloc 2
+
+# BLOC 5: IL NE RESTE QU'UN BATON DANS u, ON FINIT
+F0,!:<,F1  # on va a gauche de u et
+F1, :!,F0  # on remplit les cellules
+F1,!:>,F2  # on a rempli tout l'espace
+F2,!: ,F2  # on efface pour recreer la cellule separatrice
+F2, :<,F3  # on va a gauche
+F3,!:<,F3  # on saute les batons de v vers la gauche
+F3, :>,F   # on revient sur le premier baton de v, c'est fini.
